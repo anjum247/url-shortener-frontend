@@ -105,9 +105,6 @@
             border-color: #667eea;
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
         }
-        textarea::placeholder {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
         .btn {
             padding: 18px 38px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -146,12 +143,10 @@
         .result.success {
             background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
             border: 2px solid #28a745;
-            display: block;
         }
         .result.error {
             background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
             border: 2px solid #dc3545;
-            display: block;
         }
         .result-title {
             font-weight: 700;
@@ -218,68 +213,6 @@
             color: #666;
             margin-top: 5px;
         }
-        .bulk-result-list {
-            max-height: 400px;
-            overflow-y: auto;
-            margin-top: 15px;
-        }
-        .bulk-item {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            border-left: 4px solid #28a745;
-        }
-        .bulk-item.failed {
-            border-left-color: #dc3545;
-        }
-        .bulk-original {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 6px;
-            word-break: break-all;
-        }
-        .bulk-short {
-            font-size: 16px;
-            font-weight: 600;
-            color: #667eea;
-        }
-        .bulk-error {
-            font-size: 13px;
-            color: #dc3545;
-            margin-top: 5px;
-        }
-        .bulk-actions {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-        }
-        .summary-box {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-around;
-            text-align: center;
-        }
-        .summary-item {
-            flex: 1;
-        }
-        .summary-number {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-        .summary-number.success { color: #28a745; }
-        .summary-number.failed { color: #dc3545; }
-        .summary-number.total { color: #667eea; }
-        .summary-label {
-            font-size: 12px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
         .helper-text {
             font-size: 13px;
             color: #666;
@@ -297,7 +230,6 @@
             .input-group { flex-direction: column; }
             .container { padding: 35px 25px; }
             h1 { font-size: 28px; }
-            .bulk-actions { flex-direction: column; }
         }
     </style>
 </head>
@@ -306,7 +238,6 @@
         <h1>🔗 URL Shortener</h1>
         <p class="subtitle">Make your long URLs short and shareable!</p>
         
-        <!-- Mode Toggle -->
         <div class="mode-toggle">
             <button class="mode-btn active" onclick="switchMode('single')">
                 🔗 Single URL
@@ -316,7 +247,6 @@
             </button>
         </div>
         
-        <!-- Single URL Mode -->
         <div id="singleMode" class="mode-content active">
             <div class="input-group">
                 <input 
@@ -331,24 +261,19 @@
             </div>
         </div>
         
-        <!-- Bulk URL Mode -->
         <div id="bulkMode" class="mode-content">
-            <p class="helper-text">
-                📝 Paste multiple URLs (one per line)
-            </p>
+            <p class="helper-text">📝 Paste multiple URLs (one per line)</p>
             <textarea 
                 id="bulkUrls" 
-                placeholder="https://example1.com&#10;https://example2.com&#10;https://example3.com&#10;&#10;Enter as many URLs as you need..."
+                placeholder="https://example1.com&#10;https://example2.com&#10;https://example3.com"
             ></textarea>
             <button onclick="shortenBulk()" id="bulkBtn" class="btn btn-full" style="margin-top: 12px;">
                 Shorten All URLs
             </button>
         </div>
         
-        <!-- Result Display -->
         <div id="result" class="result"></div>
         
-        <!-- Stats -->
         <div class="stats">
             <div class="stat-item">
                 <div class="stat-number" id="totalShortened">0</div>
@@ -370,7 +295,6 @@
     </div>
 
     <script>
-        // ⚠️ IMPORTANT: আপনার Render.com URL এখানে দিন
         const API_URL = 'https://url-shortener-api-zz3o.onrender.com/api/shorten';
         const API_URL_BULK = 'https://url-shortener-api-zz3o.onrender.com/api/shorten-bulk';
         
@@ -381,14 +305,9 @@
         
         function switchMode(mode) {
             currentMode = mode;
-            
-            // Update buttons
-            document.querySelectorAll('.mode-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
             
-            // Update content
             document.getElementById('singleMode').classList.remove('active');
             document.getElementById('bulkMode').classList.remove('active');
             
@@ -398,7 +317,6 @@
                 document.getElementById('bulkMode').classList.add('active');
             }
             
-            // Clear results
             document.getElementById('result').style.display = 'none';
         }
         
@@ -422,13 +340,16 @@
             result.style.display = 'none';
             
             try {
+                console.log('Calling API:', API_URL);
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url: url })
                 });
                 
+                console.log('Response status:', response.status);
                 const data = await response.json();
+                console.log('Response data:', data);
                 
                 if (data.success) {
                     showSuccess(data.short_url);
@@ -440,7 +361,8 @@
                     showError(data.error || 'Failed to shorten URL');
                 }
             } catch (error) {
-                showError('❌ Network error. Check if backend is running.');
+                console.error('Error:', error);
+                showError('❌ Network error: ' + error.message);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Shorten';
@@ -452,17 +374,13 @@
             const btn = document.getElementById('bulkBtn');
             const result = document.getElementById('result');
             
-            const urls = textarea.value
-                .split('\n')
-                .map(u => u.trim())
-                .filter(u => u.length > 0);
+            const urls = textarea.value.split('\n').map(u => u.trim()).filter(u => u.length > 0);
             
             if (urls.length === 0) {
                 showError('⚠️ Please enter at least one URL');
                 return;
             }
             
-            // Add protocol if missing
             const processedUrls = urls.map(url => {
                 if (!url.match(/^https?:\/\//i)) {
                     return 'https://' + url;
@@ -493,7 +411,7 @@
                     showError(data.error || 'Failed to shorten URLs');
                 }
             } catch (error) {
-                showError('❌ Network error. Check if backend is running.');
+                showError('❌ Network error: ' + error.message);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Shorten All URLs';
@@ -503,6 +421,7 @@
         function showSuccess(shortUrl) {
             const result = document.getElementById('result');
             result.className = 'result success';
+            result.style.display = 'block';
             result.innerHTML = `
                 <div class="result-title">✅ Success! Your link is ready</div>
                 <div class="short-url-box">
@@ -517,68 +436,40 @@
         function showBulkSuccess(results, successful, failed, total) {
             const result = document.getElementById('result');
             result.className = 'result success';
+            result.style.display = 'block';
             
             let html = `
                 <div class="result-title">✅ Bulk Shortening Complete!</div>
-                <div class="summary-box">
-                    <div class="summary-item">
-                        <div class="summary-number total">${total}</div>
-                        <div class="summary-label">Total</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-number success">${successful}</div>
-                        <div class="summary-label">Success</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-number failed">${failed}</div>
-                        <div class="summary-label">Failed</div>
-                    </div>
+                <div style="background:white;padding:15px;border-radius:10px;margin:10px 0;display:flex;justify-content:space-around;">
+                    <div><div style="font-size:24px;font-weight:700;color:#667eea;">${total}</div><div style="font-size:12px;color:#666;">Total</div></div>
+                    <div><div style="font-size:24px;font-weight:700;color:#28a745;">${successful}</div><div style="font-size:12px;color:#666;">Success</div></div>
+                    <div><div style="font-size:24px;font-weight:700;color:#dc3545;">${failed}</div><div style="font-size:12px;color:#666;">Failed</div></div>
                 </div>
-                <div class="bulk-result-list">
+                <div style="max-height:300px;overflow-y:auto;">
             `;
             
             results.forEach((item, index) => {
-                const itemClass = item.success ? 'bulk-item' : 'bulk-item failed';
-                html += `<div class="${itemClass}">`;
-                html += `<div class="bulk-original">${index + 1}. ${item.original_url}</div>`;
+                const borderColor = item.success ? '#28a745' : '#dc3545';
+                html += `<div style="background:white;padding:15px;border-radius:8px;margin:10px 0;border-left:4px solid ${borderColor};">`;
+                html += `<div style="font-size:13px;color:#666;margin-bottom:6px;">${index + 1}. ${item.original_url}</div>`;
                 
                 if (item.success) {
-                    html += `
-                        <div class="bulk-short">
-                            <a href="${item.short_url}" target="_blank" style="color: #667eea; text-decoration: none;">
-                                ${item.short_url}
-                            </a>
-                        </div>
-                    `;
+                    html += `<div style="font-size:16px;font-weight:600;"><a href="${item.short_url}" target="_blank" style="color:#667eea;text-decoration:none;">${item.short_url}</a></div>`;
                 } else {
-                    html += `<div class="bulk-error">❌ ${item.error || 'Failed'}</div>`;
+                    html += `<div style="font-size:13px;color:#dc3545;">❌ ${item.error || 'Failed'}</div>`;
                 }
                 
                 html += `</div>`;
             });
             
             html += `</div>`;
-            
-            // Add action buttons
-            const successUrls = results.filter(r => r.success).map(r => r.short_url).join('\n');
-            
-            html += `
-                <div class="bulk-actions">
-                    <button class="btn copy-btn" style="flex: 1;" onclick="copyToClipboard(\`${successUrls}\`)">
-                        📋 Copy All Links
-                    </button>
-                    <button class="btn" style="flex: 1; background: #17a2b8;" onclick="downloadResults(${JSON.stringify(results).replace(/"/g, '&quot;')})">
-                        💾 Download CSV
-                    </button>
-                </div>
-            `;
-            
             result.innerHTML = html;
         }
         
         function showError(message) {
             const result = document.getElementById('result');
             result.className = 'result error';
+            result.style.display = 'block';
             result.innerHTML = `<div class="result-title">Error</div><div>${message}</div>`;
         }
         
@@ -586,38 +477,12 @@
             navigator.clipboard.writeText(text).then(() => {
                 alert('✅ Copied to clipboard!');
             }).catch(() => {
-                alert('❌ Failed to copy. Please copy manually.');
+                alert('❌ Failed to copy');
             });
         }
         
-        function downloadResults(results) {
-            let csv = 'Original URL,Short URL,Status,Error\n';
-            
-            results.forEach(item => {
-                const status = item.success ? 'Success' : 'Failed';
-                const error = item.error || '';
-                csv += `"${item.original_url}","${item.short_url}","${status}","${error}"\n`;
-            });
-            
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `shortened-urls-${Date.now()}.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
-        }
-        
-        // Enter key support
         document.getElementById('urlInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') shortenUrl();
-        });
-        
-        document.getElementById('bulkUrls').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && e.ctrlKey) {
-                e.preventDefault();
-                shortenBulk();
-            }
         });
     </script>
 </body>
