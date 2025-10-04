@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener - Free & Fast</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 24px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.3);
+            max-width: 700px;
+            width: 100%;
+            animation: fadeIn 0.6s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 {
+            color: #333;
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .mode-toggle {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 25px;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .mode-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .mode-content {
+            display: none;
+        }
+        .mode-content.active {
+            display: block;
+        }
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        input[type="url"] {
+            flex: 1;
+            padding: 18px 22px;
+            border: 2px solid #e0e0e0;
+            border-radius: 14px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        input[type="url"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 18px 22px;
+            border: 2px solid #e0e0e0;
+            border-radius: 14px;
+            font-size: 15px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: all 0.3s;
+            line-height: 1.6;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        textarea::placeholder {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .btn {
+            padding: 18px 38px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .btn-full {
+            width: 100%;
+        }
+        .result {
+            margin-top: 25px;
+            padding: 25px;
+            border-radius: 14px;
+            display: none;
+            animation: slideDown 0.4s;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result.success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #28a745;
+            display: block;
+        }
+        .result.error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 2px solid #dc3545;
+            display: block;
+        }
+        .result-title {
+            font-weight: 700;
+            margin-bottom: 15px;
+            font-size: 17px;
+        }
+        .success .result-title { color: #155724; }
+        .error .result-title { color: #721c24; }
+        .short-url-box {
+            background: white;
+            padding: 18px;
+            border-radius: 10px;
+            margin: 12px 0;
+            word-break: break-all;
+        }
+        .short-url-link {
+            font-size: 18px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .short-url-link:hover {
+            text-decoration: underline;
+        }
+        .copy-btn {
+            margin-top: 12px;
+            background: #28a745;
+        }
+        .copy-btn:hover {
+            background: #218838;
+        }
+        .loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 30px 0 20px 0;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 14px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 28px;
+            font-weight: 800;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .bulk-result-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        .bulk-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #28a745;
+        }
+        .bulk-item.failed {
+            border-left-color: #dc3545;
+        }
+        .bulk-original {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+            word-break: break-all;
+        }
+        .bulk-short {
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        .bulk-error {
+            font-size: 13px;
+            color: #dc3545;
+            margin-top: 5px;
+        }
+        .bulk-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .summary-box {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+        .summary-item {
+            flex: 1;
+        }
+        .summary-number {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .summary-number.success { color: #28a745; }
+        .summary-number.failed { color: #dc3545; }
+        .summary-number.total { color: #667eea; }
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .helper-text {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 14px;
+        }
+        @media (max-width: 600px) {
+            .input-group { flex-direction: column; }
+            .container { padding: 35px 25px; }
+            h1 { font-size: 28px; }
+            .bulk-actions { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 URL Shortener</h1>
+        <p class="subtitle">Make your long URLs short and shareable!</p>
+        
+        <!-- Mode Toggle -->
+        <div class="mode-toggle">
+            <button class="mode-btn active" onclick="switchMode('single')">
+                🔗 Single URL
+            </button>
+            <button class="mode-btn" onclick="switchMode('bulk')">
+                📋 Bulk URLs
+            </button>
+        </div>
+        
+        <!-- Single URL Mode -->
+        <div id="singleMode" class="mode-content active">
+            <div class="input-group">
+                <input 
+                    type="url" 
+                    id="urlInput" 
+                    placeholder="Paste your long URL here..."
+                    autocomplete="off"
+                >
+                <button onclick="shortenUrl()" id="shortenBtn" class="btn">
+                    Shorten
+                </button>
+            </div>
+        </div>
+        
+        <!-- Bulk URL Mode -->
+        <div id="bulkMode" class="mode-content">
+            <p class="helper-text">
+                📝 Paste multiple URLs (one per line)
+            </p>
+            <textarea 
+                id="bulkUrls" 
+                placeholder="https://example1.com&#10;https://example2.com&#10;https://example3.com&#10;&#10;Enter as many URLs as you need..."
+            ></textarea>
+            <button onclick="shortenBulk()" id="bulkBtn" class="btn btn-full" style="margin-top: 12px;">
+                Shorten All URLs
+            </button>
+        </div>
+        
+        <!-- Result Display -->
+        <div id="result" class="result"></div>
+        
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalShortened">0</div>
+                <div class="stat-label">Links Created</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">⚡</div>
+                <div class="stat-label">Lightning Fast</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">🔒</div>
+                <div class="stat-label">100% Secure</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            Made with ❤️ | Powered by Bitly API
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ IMPORTANT: আপনার Render.com URL এখানে দিন
+        const API_URL = 'https://url-shortener-api-zz3o.onrender.com';
+        const API_URL_BULK = 'https://url-shortener-api-zz3o.onrender.com';
+        
+        let totalCount = parseInt(localStorage.getItem('totalShortened') || '0');
+        document.getElementById('totalShortened').textContent = totalCount;
+        
+        let currentMode = 'single';
+        
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Update buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update content
+            document.getElementById('singleMode').classList.remove('active');
+            document.getElementById('bulkMode').classList.remove('active');
+            
+            if (mode === 'single') {
+                document.getElementById('singleMode').classList.add('active');
+            } else {
+                document.getElementById('bulkMode').classList.add('active');
+            }
+            
+            // Clear results
+            document.getElementById('result').style.display = 'none';
+        }
+        
+        async function shortenUrl() {
+            const input = document.getElementById('urlInput');
+            const btn = document.getElementById('shortenBtn');
+            const result = document.getElementById('result');
+            let url = input.value.trim();
+            
+            if (!url) {
+                showError('⚠️ Please enter a URL');
+                return;
+            }
+            
+            if (!url.match(/^https?:\/\//i)) {
+                url = 'https://' + url;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Shortening...';
+            result.style.display = 'none';
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccess(data.short_url);
+                    totalCount++;
+                    localStorage.setItem('totalShortened', totalCount);
+                    document.getElementById('totalShortened').textContent = totalCount;
+                    input.value = '';
+                } else {
+                    showError(data.error || 'Failed to shorten URL');
+                }
+            } catch (error) {
+                showError('❌ Network error. Check if backend is running.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Shorten';
+            }
+        }
+        
+        async function shortenBulk() {
+            const textarea = document.getElementById('bulkUrls');
+            const btn = document.getElementById('bulkBtn');
+            const result = document.getElementById('result');
+            
+            const urls = textarea.value
+                .split('\n')
+                .map(u => u.trim())
+                .filter(u => u.length > 0);
+            
+            if (urls.length === 0) {
+                showError('⚠️ Please enter at least one URL');
+                return;
+            }
+            
+            // Add protocol if missing
+            const processedUrls = urls.map(url => {
+                if (!url.match(/^https?:\/\//i)) {
+                    return 'https://' + url;
+                }
+                return url;
+            });
+            
+            btn.disabled = true;
+            btn.innerHTML = `<span class="loading"></span>Processing ${urls.length} URLs...`;
+            result.style.display = 'none';
+            
+            try {
+                const response = await fetch(API_URL_BULK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ urls: processedUrls })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showBulkSuccess(data.results, data.successful, data.failed, data.total);
+                    totalCount += data.successful;
+                    localStorage.setItem('totalShortened', totalCount);
+                    document.getElementById('totalShortened').textContent = totalCount;
+                    textarea.value = '';
+                } else {
+                    showError(data.error || 'Failed to shorten URLs');
+                }
+            } catch (error) {
+                showError('❌ Network error. Check if backend is running.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Shorten All URLs';
+            }
+        }
+        
+        function showSuccess(shortUrl) {
+            const result = document.getElementById('result');
+            result.className = 'result success';
+            result.innerHTML = `
+                <div class="result-title">✅ Success! Your link is ready</div>
+                <div class="short-url-box">
+                    <a href="${shortUrl}" target="_blank" class="short-url-link">${shortUrl}</a>
+                </div>
+                <button class="btn copy-btn btn-full" onclick="copyToClipboard('${shortUrl}')">
+                    📋 Copy to Clipboard
+                </button>
+            `;
+        }
+        
+        function showBulkSuccess(results, successful, failed, total) {
+            const result = document.getElementById('result');
+            result.className = 'result success';
+            
+            let html = `
+                <div class="result-title">✅ Bulk Shortening Complete!</div>
+                <div class="summary-box">
+                    <div class="summary-item">
+                        <div class="summary-number total">${total}</div>
+                        <div class="summary-label">Total</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-number success">${successful}</div>
+                        <div class="summary-label">Success</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-number failed">${failed}</div>
+                        <div class="summary-label">Failed</div>
+                    </div>
+                </div>
+                <div class="bulk-result-list">
+            `;
+            
+            results.forEach((item, index) => {
+                const itemClass = item.success ? 'bulk-item' : 'bulk-item failed';
+                html += `<div class="${itemClass}">`;
+                html += `<div class="bulk-original">${index + 1}. ${item.original_url}</div>`;
+                
+                if (item.success) {
+                    html += `
+                        <div class="bulk-short">
+                            <a href="${item.short_url}" target="_blank" style="color: #667eea; text-decoration: none;">
+                                ${item.short_url}
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    html += `<div class="bulk-error">❌ ${item.error || 'Failed'}</div>`;
+                }
+                
+                html += `</div>`;
+            });
+            
+            html += `</div>`;
+            
+            // Add action buttons
+            const successUrls = results.filter(r => r.success).map(r => r.short_url).join('\n');
+            
+            html += `
+                <div class="bulk-actions">
+                    <button class="btn copy-btn" style="flex: 1;" onclick="copyToClipboard(\`${successUrls}\`)">
+                        📋 Copy All Links
+                    </button>
+                    <button class="btn" style="flex: 1; background: #17a2b8;" onclick="downloadResults(${JSON.stringify(results).replace(/"/g, '&quot;')})">
+                        💾 Download CSV
+                    </button>
+                </div>
+            `;
+            
+            result.innerHTML = html;
+        }
+        
+        function showError(message) {
+            const result = document.getElementById('result');
+            result.className = 'result error';
+            result.innerHTML = `<div class="result-title">Error</div><div>${message}</div>`;
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Copied to clipboard!');
+            }).catch(() => {
+                alert('❌ Failed to copy. Please copy manually.');
+            });
+        }
+        
+        function downloadResults(results) {
+            let csv = 'Original URL,Short URL,Status,Error\n';
+            
+            results.forEach(item => {
+                const status = item.success ? 'Success' : 'Failed';
+                const error = item.error || '';
+                csv += `"${item.original_url}","${item.short_url}","${status}","${error}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `shortened-urls-${Date.now()}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+        
+        // Enter key support
+        document.getElementById('urlInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') shortenUrl();
+        });
+        
+        document.getElementById('bulkUrls').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                shortenBulk();
+            }
+        });
+    </script>
+</body>
+</html>
